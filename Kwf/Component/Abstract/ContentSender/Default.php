@@ -81,6 +81,7 @@ class Kwf_Component_Abstract_ContentSender_Default extends Kwf_Component_Abstrac
             header('Pragma: public');
         }
         echo $out;
+        if ($benchmarkEnabled) Kwf_Benchmark::checkpoint('echo output '.strlen($out).' bytes');
 
         self::_callPostProcessInput($process);
         if ($benchmarkEnabled) Kwf_Benchmark::checkpoint('postProcessInput');

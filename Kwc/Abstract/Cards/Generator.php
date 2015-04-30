@@ -13,7 +13,8 @@ class Kwc_Abstract_Cards_Generator extends Kwf_Component_Generator_Static
 
     public function getChildData($parentData, $select = array())
     {
-        Kwf_Benchmark::count('GenCards::getChildData');
+//         Kwf_Debug::bt();
+        Kwf_Benchmark::count('GenCards::getChildData', $this->getClass().' '.get_class($this));
 
         if (is_array($select)) {
             $select = new Kwf_Component_Select($select);
@@ -155,5 +156,11 @@ class Kwc_Abstract_Cards_Generator extends Kwf_Component_Generator_Static
     public function getStaticChildComponentIds()
     {
         return array($this->_idSeparator.'child');
+    }
+
+
+    public function getRecursiveDataResolver()
+    {
+        return 'Kwc_Abstract_Cards_RecursiveDataResolver';
     }
 }

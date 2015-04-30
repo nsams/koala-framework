@@ -122,7 +122,7 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
 
     public function getChildData($parentData, $select = array())
     {
-        Kwf_Benchmark::count('GenPage::getChildData');
+        Kwf_Benchmark::count('GenPage::getChildData', $this->getClass().' '.get_class($this));
 
         $select = $this->_formatSelect($parentData, $select);
         if (is_null($select)) return array();
