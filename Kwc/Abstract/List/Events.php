@@ -35,6 +35,8 @@ class Kwc_Abstract_List_Events extends Kwc_Abstract_Events
         return $ret;
     }
 
+    //TODO update cache_visible_parents field!!!!!
+
     public function onRowInsertOrDelete(Kwf_Events_Event_Row_Abstract $event)
     {
         foreach ($this->_getComponentsByRow($event->row) as $c) {

@@ -19,7 +19,7 @@ class Kwc_Paragraphs_Component extends Kwc_Abstract
         $ret['assetsAdmin']['dep'][] = 'KwfOnReadyCore';
         $ret['assetsAdmin']['dep'][] = 'KwfAutoGrid';
         $ret['generators']['paragraphs'] = array(
-            'class' => 'Kwf_Component_Generator_Table',
+            'class' => 'Kwc_Paragraphs_Generator',
             'component' => array(
                 'textImage' => 'Kwc_TextImage_Component',
             )

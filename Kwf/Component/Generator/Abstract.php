@@ -979,4 +979,9 @@ abstract class Kwf_Component_Generator_Abstract
     {
         return Kwf_Component_Data::DEVICE_VISIBLE_ALL;
     }
+
+    public function getRecursiveDataResolver()
+    {
+        return null;
+    }
 }

@@ -93,7 +93,8 @@ class Kwf_Component_Generator_Table extends Kwf_Component_Generator_Abstract
 
     public function getChildData($parentData, $select = array())
     {
-        Kwf_Benchmark::count('GenTable::getChildData');
+        //Kwf_Debug::bt();
+        Kwf_Benchmark::count('GenTable::getChildData', $this->getClass().' '.get_class($this));
         if (is_array($select)) $select = new Kwf_Component_Select($select);
         $ret = array();
         if (!$parentData && ($p = $select->getPart(Kwf_Component_Select::WHERE_CHILD_OF))
@@ -166,7 +167,9 @@ class Kwf_Component_Generator_Table extends Kwf_Component_Generator_Abstract
                             $found = true;
                         }
                     }
-                    if (!$found) return null;
+                    if (!$found) {
+                        return null;
+                    }
                 }
 
                 $childIdPart = substr($row->component_id, strlen($p->dbId));

@@ -13,7 +13,7 @@ class Kwf_Component_Generator_Static extends Kwf_Component_Generator_Abstract
 
     public function getChildData($parentData, $select = array())
     {
-        Kwf_Benchmark::count('GenStatic::getChildData');
+        Kwf_Benchmark::count('GenStatic::getChildData', $this->getClass().' '.get_class($this));
 
         if (is_array($select)) {
             $select = new Kwf_Component_Select($select);

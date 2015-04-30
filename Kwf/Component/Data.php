@@ -368,7 +368,6 @@ class Kwf_Component_Data
         if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
             return $ret;
         }
-
         $genSelect = new Kwf_Component_Select();
         $genSelect->copyParts(array(
             Kwf_Component_Select::WHERE_HOME,
@@ -409,34 +408,64 @@ class Kwf_Component_Data
             $select->whereSubroot($this);
         }
 
+        $recursiveDataResolvers = array();
+        if ($noSubPages) {
+            foreach ($generators as $g) {
+                if ($g['type'] == 'notStatic') {
+                    if ($g['recursiveDataResolver']) {
+                        if (!isset($recursiveDataResolvers[$g['recursiveDataResolver']])) {
+                            $recursiveDataResolvers[$g['recursiveDataResolver']] = array(
+                                'generators' => array()
+                            );
+                        }
+                        $recursiveDataResolvers[$g['recursiveDataResolver']]['generators'][] = Kwf_Component_Generator_Abstract::getInstance($g['class'], $g['key']);;
+                    }
+                }
+            }
+            foreach ($recursiveDataResolvers as $recursiveDataResolverClass=>$recursiveDataResolver) {
+                $resolver = new $recursiveDataResolverClass;
+                foreach ($resolver->getRecursive($recursiveDataResolver['generators'], clone $select) as $d) {
+                    $ret[] = $d;
+                    if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
+                        return $ret;
+                    }
+                }
+
+            }
+        }
         foreach ($generators as $g) {
             if ($g['type'] == 'notStatic') {
-                $gen = Kwf_Component_Generator_Abstract::getInstance($g['class'], $g['key']);
-                $s = clone $select;
-                if (!$noSubPages) {
-                    //unset limit as we may have filter away results
-                    $s->unsetPart('limitCount');
-                }
-                foreach ($gen->getChildData(null, $s) as $d) {
-                    $add = true;
-                    if (!$noSubPages) { // sucht über unterseiten hinweg, wird hier erst im Nachhinein gehandelt, langsam
-                        $add = false;
-                        $c = $d;
-                        while (!$add && $c) {
-                            if ($c->componentId == $this->componentId) $add = true;
-                            $c = $c->parent;
-                        }
+                if ($g['recursiveDataResolver'] && $recursiveDataResolvers) {
+                    //$recursiveDataResolvers[]
+                } else {
+                    $gen = Kwf_Component_Generator_Abstract::getInstance($g['class'], $g['key']);
+                    $s = clone $select;
+                    if (!$noSubPages) {
+                        //unset limit as we may have filter away results
+                        $s->unsetPart('limitCount');
                     }
-                    if ($add && !in_array($d, $ret, true)) {
-                        $ret[] = $d;
-                        if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
-                            return $ret;
+                    foreach ($gen->getChildData(null, $s) as $d) {
+                        $add = true;
+                        if (!$noSubPages) { // sucht über unterseiten hinweg, wird hier erst im Nachhinein gehandelt, langsam
+                            $add = false;
+                            $c = $d;
+                            while (!$add && $c) {
+                                if ($c->componentId == $this->componentId) $add = true;
+                                $c = $c->parent;
+                            }
+                        }
+                        if ($add && !in_array($d, $ret, true)) {
+                            $ret[] = $d;
+                            if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
+                                return $ret;
+                            }
                         }
                     }
                 }
             }
         }
 
+        $cardsRecursiveDataResolvers = array();
         foreach ($generators as $k=>$g) {
             if ($g['type'] == 'cards') {
                 $lookingForDefault = true;
@@ -456,16 +485,35 @@ class Kwf_Component_Data
                 } else {
                     $gen = Kwf_Component_Generator_Abstract
                         ::getInstance($g['class'], $g['key'], array(), $g['pluginBaseComponentClass']);
-                    foreach ($gen->getChildData(null, clone $select) as $d) {
-                        $ret[] = $d;
-                        if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
-                            return $ret;
+                    if ($g['recursiveDataResolver']) {
+                        if (!isset($cardsRecursiveDataResolvers[$g['recursiveDataResolver']])) {
+                            $cardsRecursiveDataResolvers[$g['recursiveDataResolver']] = array(
+                                'generators' => array()
+                            );
+                        }
+                        $cardsRecursiveDataResolvers[$g['recursiveDataResolver']]['generators'][] = $gen;
+                    } else {
+                        foreach ($gen->getChildData(null, clone $select) as $d) {
+                            $ret[] = $d;
+                            if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
+                                return $ret;
+                            }
                         }
                     }
-
                 }
             }
         }
+
+        foreach ($cardsRecursiveDataResolvers as $recursiveDataResolverClass=>$recursiveDataResolver) {
+            $resolver = new $recursiveDataResolverClass;
+            foreach ($resolver->getRecursive($recursiveDataResolver['generators'], clone $select) as $d) {
+                $ret[] = $d;
+                if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
+                    return $ret;
+                }
+            }
+        }
+
 
         $staticGeneratorComponentClasses = array();
         foreach ($generators as $k=>$g) {
@@ -477,30 +525,78 @@ class Kwf_Component_Data
                 }
             }
         }
-
         if ($staticGeneratorComponentClasses) {
-            $pdSelect = clone $childSelect;
-            $pdSelect->whereComponentClasses($staticGeneratorComponentClasses);
-            $pdSelect->copyParts(array('ignoreVisible'), $select);
-            $pd = $this->getRecursiveChildComponents($pdSelect, $childSelect);
+            $lastStaticParents = array();
             foreach ($generators as $k=>$g) {
                 if ($g['type'] == 'static') {
-                    $parentDatas = array();
-                    foreach ($pd as $d) {
-                        if ($d->componentClass == $g['class'] || $d->componentClass == $g['pluginBaseComponentClass']) {
-                            $parentDatas[] = $d;
+                    if (!$g['parentsStatic']) {
+                        if (!in_array($g['lastStaticParent'], $lastStaticParents)) {
+                            $lastStaticParents[] = $g['lastStaticParent'];
                         }
                     }
-                    if ($parentDatas) {
-                        $gen = Kwf_Component_Generator_Abstract
-                                ::getInstance($g['class'], $g['key'], array(), $g['pluginBaseComponentClass']);
-                        foreach ($gen->getChildData($parentDatas, $select) as $d) {
-                            if (!in_array($d, $ret, true)) {
-                                $ret[] = $d;
+                }
+            }
+            $staticParentDatas = null;
+            if ($lastStaticParents) {
+                $pdSelect = clone $childSelect;
+                $pdSelect->whereComponentClasses($lastStaticParents);
+                $pdSelect->copyParts(array('ignoreVisible'), $select);
+                $staticParentDatas = $this->getRecursiveChildComponents($pdSelect, $childSelect);
+            }
+
+            foreach ($generators as $k=>$g) {
+                if ($g['type'] == 'static') {
+                    if ($g['parentsStatic']) {
+                        //all parents are static, no need to use getRecursiveChildComponents
+                        $pdSelect = clone $childSelect;
+                        $pdSelect->whereComponentClass($g['parentsStatic']);
+                        $pdSelect->copyParts(array('ignoreVisible'), $select);
+                        $pd = $this->getChildComponent($pdSelect);
+                        foreach ($g['staticParentIds'] as $ids) {
+                            foreach (array_reverse($ids) as $id) {
+                                if (!$pd) {
+                                    //continue 2; //TODO why does that happen?
+                                }
+                                $pd = $pd->getChildComponent($id);
+                            }
+                            if (!in_array($pd, $ret, true)) {
+                                $ret[] = $pd;
                                 if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
                                     return $ret;
                                 }
                             }
+                        }
+                        /*
+                        //TODO ?
+                        if ($d->componentClass == $g['class'] || $d->componentClass == $g['pluginBaseComponentClass']) {
+                            $parentDatas[] = $d;
+                        }
+                        */
+                    } else {
+                        $parentDatas = array();
+                        foreach ($staticParentDatas as $d) {
+                            if ($g['lastStaticParent'] == $d->componentClass) {
+                                foreach ($g['staticParentIds'] as $ids) {
+                                    foreach (array_reverse($ids) as $id) {
+                                        if (!$d) {
+                                            //continue 2; //TODO why does that happen?
+                                        }
+                                        $d = $d->getChildComponent($id);
+                                    }
+                                    if (!in_array($d, $ret, true)) {
+                                        $ret[] = $d;
+                                        if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
+                                            return $ret;
+                                        }
+                                    }
+                                }
+                            }
+                            /*
+                            //TODO ?
+                            if ($d->componentClass == $g['class'] || $d->componentClass == $g['pluginBaseComponentClass']) {
+                                $parentDatas[] = $d;
+                            }
+                            */
                         }
                     }
                 }
@@ -511,53 +607,86 @@ class Kwf_Component_Data
 
     private function _getRecursiveGenerators($componentClasses, $select, $childSelect, $selectHash)
     {
-        $cacheId = Implode('-', $componentClasses).$selectHash;
+        $ret = array();
+        foreach ($componentClasses as $componentClass) {
+            $ret = array_merge($ret, $this->_getRecursiveGeneratorsImpl($componentClass, $select, $childSelect, $selectHash));
+        }
+        return $ret;
+    }
+
+    private function _getRecursiveGeneratorsImpl($componentClass, $select, $childSelect, $selectHash)
+    {
+        $cacheId = $componentClass.$selectHash;
         if (isset($this->_recursiveGeneratorsCache[$cacheId])) {
             return $this->_recursiveGeneratorsCache[$cacheId];
         }
 
         $ret = array();
         $this->_recursiveGeneratorsCache[$cacheId] = array();
-        foreach ($componentClasses as $componentClass) {
-            if (!$componentClass) continue;
-            foreach (Kwf_Component_Generator_Abstract::getInstances($componentClass, $select) as $generator) {
-                if ($generator->getChildComponentClasses($select)) {
-                    if ($generator->getGeneratorFlag('static')) {
-                        if ($generator instanceof Kwc_Abstract_Cards_Generator) {
-                            $type = 'cards';
-                        } else {
-                            $type = 'static';
-                        }
+        foreach (Kwf_Component_Generator_Abstract::getInstances($componentClass, $select) as $generator) {
+            if ($childClasses = $generator->getChildComponentClasses($select)) {
+                $staticParentIds = false;
+                if ($generator->getGeneratorFlag('static')) {
+                    if ($generator->getGeneratorFlag('staticSelect')) {
+                        $type = 'staticSelect';
+                    } else if ($generator instanceof Kwc_Abstract_Cards_Generator) {
+                        $type = 'cards';
                     } else {
-                        $type = 'notStatic';
-                    }
-                    $ret[] = array(
-                        'type' => $type,
-                        'class' => $generator->getClass(),
-                        'pluginBaseComponentClass' => $generator->getPluginBaseComponentClass(),
-                        'key' => $generator->getGeneratorKey()
-                    );
-                }
-            }
-        }
-        foreach ($componentClasses as $componentClass) {
-            if (!$componentClass) continue;
-            foreach (Kwf_Component_Generator_Abstract::getInstances($componentClass, $childSelect) as $generator) {
-                $g = $this->_getRecursiveGenerators(
-                                    $generator->getChildComponentClasses(),
-                                    $select, $childSelect, $selectHash);
-                foreach ($g as $i) {
-                    foreach ($ret as $j) {
-                        if ($j['class'] == $i['class']
-                                && $j['key'] == $i['key']
-                                && $j['pluginBaseComponentClass'] == $i['pluginBaseComponentClass']) {
-                            continue 2;
+                        $type = 'static';
+                        $staticParentIds = array();
+                        foreach ($childClasses as $k=>$i) {
+                            $staticParentIds[] = array($generator->getIdSeparator().$k);
                         }
                     }
-                    $ret[] = $i;
+                } else {
+                    $type = 'notStatic';
                 }
+                $ret[] = array(
+                    'type' => $type,
+                    'class' => $generator->getClass(),
+                    'pluginBaseComponentClass' => $generator->getPluginBaseComponentClass(),
+                    'key' => $generator->getGeneratorKey(),
+                    'parentsStatic' => $type == 'static' ? $componentClass : false,
+                    'lastStaticParent' => $type == 'static' ? $componentClass : false,
+                    'staticParentIds' => $staticParentIds,
+                    'recursiveDataResolver' => $generator->getRecursiveDataResolver()
+                );
             }
         }
+        foreach (Kwf_Component_Generator_Abstract::getInstances($componentClass, $childSelect) as $generator) {
+            $childClasses = $generator->getChildComponentClasses($childSelect);
+            $g = $this->_getRecursiveGenerators($childClasses, $select, $childSelect, $selectHash);
+            foreach ($g as $i) {
+                foreach ($ret as $j) {
+                    if ($j['class'] == $i['class']
+                            && $j['key'] == $i['key']
+                            && $j['pluginBaseComponentClass'] == $i['pluginBaseComponentClass']) {
+                        continue 2;
+                    }
+                }
+                if ($i['parentsStatic']) {
+                    if ($generator->getGeneratorFlag('static') && !$generator->getGeneratorFlag('staticSelect') && !$generator instanceof Kwc_Abstract_Cards_Generator) {
+                        $i['parentsStatic'] = $componentClass;
+                        $i['lastStaticParent'] = $componentClass;
+                        $staticParentIds = array();
+                        foreach (array_keys($childClasses) as $childClassKey) {
+                            $ids = array();
+                            foreach ($i['staticParentIds'] as $iIds) {
+                                $iIds[] = $generator->getIdSeparator().$childClassKey;
+                                //$ids[] = $iIds;
+                                $staticParentIds[] = $iIds;
+                            }
+                        }
+                        $i['staticParentIds'] = $staticParentIds;
+                        //$i['staticParentGenerators'][] = $generator->getClass();
+                    } else {
+                        $i['parentsStatic'] = false;
+                    }
+                }
+                $ret[] = $i;
+            }
+        }
+
         $this->_recursiveGeneratorsCache[$cacheId] = $ret;
         return $ret;
     }
