@@ -29,17 +29,41 @@ class Kwf_Component_Generator_DbIdRecursiveChildComponents_Test extends Kwc_Test
     public function testRecCC1()
     {
         $p = $this->_root->getComponentById('root_page-2');
-        $this->assertEquals(1, count($p->getRecursiveChildComponents(array(
+        $res = $p->getRecursiveChildComponents(array(
             'componentClass' => 'Kwf_Component_Generator_DbIdRecursiveChildComponents_Detail_Table_Item_Component'
-        ))));
+        ));
+        $this->assertEquals(1, count($res));
+        $this->assertEquals('Kwf_Component_Generator_DbIdRecursiveChildComponents_Detail_Table_Item_Component', $res[0]->componentClass);
     }
 
     public function testRecCC2()
     {
+        $p = $this->_root->getComponentById('root_page');
+        $res = $p->getRecursiveChildComponents(array(
+            'componentClass' => 'Kwf_Component_Generator_DbIdRecursiveChildComponents_Detail_Table_Item_Component'
+        ));
+        $this->assertEquals(3, count($res));
+        $this->assertEquals('Kwf_Component_Generator_DbIdRecursiveChildComponents_Detail_Table_Item_Component', $res[0]->componentClass);
+    }
+
+    public function testRecCC3()
+    {
         $p = $this->_root->getComponentById('root_page-2');
-        $this->assertEquals(1, count($p->getRecursiveChildComponents(array(
+        $res = $p->getRecursiveChildComponents(array(
             'componentClass' => 'Kwf_Component_Generator_DbIdRecursiveChildComponents_Detail_Cards_Card_Component'
-        ))));
+        ));
+        $this->assertEquals(1, count($res));
+        $this->assertEquals('Kwf_Component_Generator_DbIdRecursiveChildComponents_Detail_Cards_Card_Component', $res[0]->componentClass);
+    }
+
+    public function testRecCC4()
+    {
+        $p = $this->_root->getComponentById('root_page');
+        $res = $p->getRecursiveChildComponents(array(
+            'componentClass' => 'Kwf_Component_Generator_DbIdRecursiveChildComponents_Detail_Cards_Card_Component'
+        ));
+        $this->assertEquals(1, count($res));
+        $this->assertEquals('Kwf_Component_Generator_DbIdRecursiveChildComponents_Detail_Cards_Card_Component', $res[0]->componentClass);
     }
 
     public function testChildPagesFromDetail1()

@@ -10,12 +10,11 @@ class Kwc_Abstract_Cards_RecursiveDataResolver extends Kwf_Component_Generator_R
                 new Kwf_Model_Select_Expr_Equal('component_id', $p->dbId),
             );
 
-            /*
-            foreach ($this->_getPossibleIndirectDbIdShortcuts($p->componentClass) as $dbIdShortcut) {
-                $ors[] = new Kwf_Model_Select_Expr_StartsWith('component_id', $dbIdShortcut);
+            foreach ($generators as $g) {
+                foreach (Kwf_Component_Generator_Abstract::getPossibleIndirectDbIdShortcuts($g->getClass(), $p->componentClass) as $dbIdShortcut) {
+                    $ors[] = new Kwf_Model_Select_Expr_StartsWith('component_id', $dbIdShortcut);
+                }
             }
-            */
-
             $select->where(new Kwf_Model_Select_Expr_Or($ors));
         }
 
@@ -65,7 +64,9 @@ class Kwc_Abstract_Cards_RecursiveDataResolver extends Kwf_Component_Generator_R
         }
         $rows = $this->_fetchRows($generators, $select);
         foreach ($rows as $row) {
-            $ret = array_merge($ret, Kwf_Component_Data_Root::getInstance()->getComponentsByDbId($row->component_id, $s));
+            foreach (Kwf_Component_Data_Root::getInstance()->getComponentsByDbId($row->component_id, $s) as $c) {
+                $ret[] = $c->getChildComponent('-child');
+            }
         }
         return $ret;
     }

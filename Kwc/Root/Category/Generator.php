@@ -161,6 +161,7 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
         if ($parentData && !$select->hasPart(Kwf_Component_Select::WHERE_ID)) {
             // diese Abfragen sind implizit recursive=true
             $parentId = $parentData->dbId;
+
             if ($select->getPart(Kwf_Component_Select::WHERE_HOME)) {
 
                 $s = new Kwf_Model_Select();

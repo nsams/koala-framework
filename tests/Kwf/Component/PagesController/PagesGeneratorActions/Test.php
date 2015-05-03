@@ -6,6 +6,18 @@
 class Kwf_Component_PagesController_PagesGeneratorActions_Test extends Kwc_TestAbstract
 {
     private $_acl;
+    /*
+    root
+      [1 empty]                           1
+      [2 empty]                           2
+        [3 empty]                         3
+      [4 Special]                         4
+      [5 SpecialContainer]                5
+        (-special Special)                5-special
+      [6 empty]                           6
+        [7 SpecialWithoutEditContainer]   7
+          (SpecialWithoutEdit)            7-special
+    */
     public function setUp()
     {
         parent::setUp('Kwf_Component_PagesController_PagesGeneratorActions_Root');
@@ -18,6 +30,20 @@ class Kwf_Component_PagesController_PagesGeneratorActions_Test extends Kwc_TestA
         $acl->addRole(new Zend_Acl_Role('special'));
         $this->_acl->allowComponent('special', 'Kwf_Component_PagesController_PagesGeneratorActions_SpecialComponent');
         $this->_acl->allowComponent('special', 'Kwf_Component_PagesController_PagesGeneratorActions_SpecialWithoutEditComponent');
+    }
+
+    public function testSpecialRecChildComponents()
+    {
+        $cmps = Kwf_Component_Data_Root::getInstance()->getRecursiveChildComponents(array(
+            'ignoreVisible'=>true,
+            'componentClasses' => array(
+                'Kwf_Component_PagesController_PagesGeneratorActions_SpecialWithoutEditComponent'
+            )
+        ), array(
+            'ignoreVisible'=>true,
+            'generatorFlags' => array('showInPageTreeAdmin' => true),
+        ));
+        $this->assertEquals(1, count($cmps));
     }
 
     public function testNodeConfig()

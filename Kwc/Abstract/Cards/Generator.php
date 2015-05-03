@@ -48,7 +48,7 @@ class Kwc_Abstract_Cards_Generator extends Kwf_Component_Generator_Static
                         ))
                     );
 
-                    foreach ($this->_getPossibleIndirectDbIdShortcuts($p->componentClass) as $dbIdShortcut) {
+                    foreach (Kwf_Component_Generator_Abstract::getPossibleIndirectDbIdShortcuts($this->_class, $p->componentClass) as $dbIdShortcut) {
                         $ors[] = new Kwf_Model_Select_Expr_StartsWith('component_id', $dbIdShortcut);
                     }
 

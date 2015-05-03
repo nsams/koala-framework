@@ -8,12 +8,39 @@ http://kwf.kwf.niko.vivid/kwf/kwctest/Kwc_Trl_MenuCache_Root/de
 http://kwf.kwf.niko.vivid/kwf/kwctest/Kwc_Trl_MenuCache_Root/de/home_de/test
 http://kwf.kwf.niko.vivid/kwf/kwctest/Kwc_Trl_MenuCache_Root/en
 http://kwf.kwf.niko.vivid/kwf/kwctest/Kwc_Trl_MenuCache_Root/en/home_en/test
+
+root                       root
+  master                   root-master
+    main (category)        root-master-main
+      [1]                  1
+        <mainMenu>         1-mainMenu
+          subMenu          1-mainMenu-subMenu
+        [2]                2
+          [4]              4
+        [3]                3
+      [7]                  7
+    bottom (category)      root-master-bottom
+      [5]                  5
+        [6]                6
+    <mainMenu>             root-master-mainMenu
+      subMenu              root-master-mainMenu-subMenu
+  en
  */
 class Kwc_Trl_MenuCache_Test extends Kwc_TestAbstract
 {
     public function setUp()
     {
         parent::setUp('Kwc_Trl_MenuCache_Root');
+    }
+
+    public function testMenuRecursive()
+    {
+        $c = $this->_root->getComponentById('root-en-main_7', array('ignoreVisible'=>true));
+        $c = $c->getRecursiveChildComponents(array(
+            'componentClass' => 'Kwc_Menu_Trl_Component.Kwc_Trl_MenuCache_MainMenu_SubMenu_Component',
+            'ignoreVisible' => true
+        ));
+        $this->assertEquals(1, count($c));
     }
 
     public function testComponentClasses()
