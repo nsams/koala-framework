@@ -11,7 +11,6 @@ abstract class Kwf_Component_Generator_Abstract
     protected $_inherits = false;
     private $_model;
     private $_plugins;
-    private $_getPossibleIndirectDbIdShortcutsCache = array();
 
     private static $instances = array();
     private static $_cachedGeneratorKeys = array();
@@ -551,6 +550,17 @@ abstract class Kwf_Component_Generator_Abstract
             }
             Kwf_Cache_SimpleStatic::add($cacheId, $ret);
         }
+        return $this->_filterChildComponentClasses($select, $ret);
+    }
+
+    public function getChildComponentClassesWithoutAlternativeComponents($select = array())
+    {
+        $ret = $this->_settings['component'];
+        return $this->_filterChildComponentClasses($select, $ret);
+    }
+
+    private function _filterChildComponentClasses($select, $ret)
+    {
 
         if ($select === array() ||
             ($select instanceof Kwf_Model_Select &&
@@ -928,10 +938,11 @@ abstract class Kwf_Component_Generator_Abstract
         return isset($this->_settings[$setting]);
     }
 
-    private function _getPossibleIndirectDbIdShortcutsImpl($class)
+    private static function _getPossibleIndirectDbIdShortcutsImpl($componentClass, $class)
     {
-        if (isset($this->_getPossibleIndirectDbIdShortcutsCache[$class])) {
-            return $this->_getPossibleIndirectDbIdShortcutsCache[$class];
+        static $getPossibleIndirectDbIdShortcutsCache = array();
+        if (isset($getPossibleIndirectDbIdShortcutsCache[$class])) {
+            return $getPossibleIndirectDbIdShortcutsCache[$class];
         }
         $ret = array();
         $gens = Kwf_Component_Generator_Abstract::getInstances($class);
@@ -940,17 +951,22 @@ abstract class Kwf_Component_Generator_Abstract
             // For Page generators the dbIdShortcut is only used for components below the current
             // page in models
             if (!$g->getGeneratorFlag('page') && $g->hasSetting('dbIdShortcut') &&
-                Kwc_Abstract::getIndirectChildComponentClasses($class, array('componentClass' => $this->_class))
+                Kwc_Abstract::getIndirectChildComponentClasses($class, array('componentClass' => $componentClass))
             ) {
                 $ret[] = $g->getSetting('dbIdShortcut');
             }
         }
-        $this->_getPossibleIndirectDbIdShortcutsCache[$class] = $ret;
+        $getPossibleIndirectDbIdShortcutsCache[$class] = $ret;
         foreach (Kwc_Abstract::getChildComponentClasses($class, array('page'=>false)) as $c) {
-            $ret = array_merge($ret, $this->_getPossibleIndirectDbIdShortcutsImpl($c));
+            $ret = array_merge($ret, self::_getPossibleIndirectDbIdShortcutsImpl($componentClass, $c));
         }
-        $this->_getPossibleIndirectDbIdShortcutsCache[$class] = $ret;
+        $getPossibleIndirectDbIdShortcutsCache[$class] = $ret;
         return $ret;
+    }
+
+    protected function _getPossibleIndirectDbIdShortcuts($class)
+    {
+        self::getPossibleIndirectDbIdShortcuts($class);
     }
 
     /**
@@ -958,12 +974,12 @@ abstract class Kwf_Component_Generator_Abstract
      *
      * Static, fast and cached.
      */
-    protected function _getPossibleIndirectDbIdShortcuts($class)
+    public static function getPossibleIndirectDbIdShortcuts($componentClass, $class)
     {
-        $cacheId = '-poss-dbid-sc-'.$this->_class.'-'.$this->getGeneratorKey().'-'.$class;
+        $cacheId = '-poss-dbid-sc-'.$componentClass.'-'.$class;
         $ret = Kwf_Cache_SimpleStatic::fetch($cacheId, $success);
         if (!$success) {
-            $ret = $this->_getPossibleIndirectDbIdShortcutsImpl($class);
+            $ret = self::_getPossibleIndirectDbIdShortcutsImpl($componentClass, $class);
             $ret = array_unique($ret);
             Kwf_Cache_SimpleStatic::add($cacheId, $ret);
         }

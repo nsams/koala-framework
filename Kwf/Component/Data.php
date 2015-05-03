@@ -525,6 +525,7 @@ class Kwf_Component_Data
                 }
             }
         }
+
         if ($staticGeneratorComponentClasses) {
             $lastStaticParents = array();
             foreach ($generators as $k=>$g) {
@@ -543,26 +544,46 @@ class Kwf_Component_Data
                 $pdSelect->copyParts(array('ignoreVisible'), $select);
                 $staticParentDatas = $this->getRecursiveChildComponents($pdSelect, $childSelect);
             }
-
             foreach ($generators as $k=>$g) {
                 if ($g['type'] == 'static') {
                     if ($g['parentsStatic']) {
                         //all parents are static, no need to use getRecursiveChildComponents
                         $pdSelect = clone $childSelect;
-                        $pdSelect->whereComponentClass($g['parentsStatic']);
-                        $pdSelect->copyParts(array('ignoreVisible'), $select);
-                        $pd = $this->getChildComponent($pdSelect);
-                        foreach ($g['staticParentIds'] as $ids) {
-                            foreach (array_reverse($ids) as $id) {
-                                if (!$pd) {
-                                    //continue 2; //TODO why does that happen?
-                                }
-                                $pd = $pd->getChildComponent($id);
+                        $parentStaticClasses = array($g['parentsStatic']);
+                        if (Kwc_Abstract::getFlag($g['parentsStatic'], 'hasAlternativeComponent')) {
+                            $cls = strpos($g['parentsStatic'], '.') ? substr($g['parentsStatic'], 0, strpos($g['parentsStatic'], '.')) : $g['parentsStatic'];
+                            foreach (call_user_func(array($cls, 'getAlternativeComponents'), $g['parentsStatic']) as $ac) {
+                                $parentStaticClasses[] = $ac;
                             }
-                            if (!in_array($pd, $ret, true)) {
-                                $ret[] = $pd;
-                                if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
-                                    return $ret;
+                        }
+                        $pdSelect->whereComponentClasses($parentStaticClasses);
+                        $pdSelect->copyParts(array('ignoreVisible'), $select);
+
+                        //all but page generator
+                        $pdSelect->wherePageGenerator(false);
+                        $parentDatas = $this->getChildComponents($pdSelect);
+
+                        //page generator (must be queried without $parentData)
+                        $pdSelect->wherePageGenerator(true);
+                        $pageGens = Kwf_Component_Generator_Abstract::getInstances($this, $pdSelect);
+                        foreach ($pageGens as $pageGen) {
+                            foreach ($pageGen->getChildData(null, $pdSelect) as $i) {
+                                $parentDatas[] = $i;
+                            }
+                        }
+                        foreach ($parentDatas as $pd) {
+                            foreach ($g['staticParentIds'] as $ids) {
+                                foreach (array_reverse($ids) as $id) {
+                                    if (!$pd) {
+                                        //continue 2; //TODO why does that happen?
+                                    }
+                                    $pd = $pd->getChildComponent($id);
+                                }
+                                if (!in_array($pd, $ret, true)) {
+                                    $ret[] = $pd;
+                                    if ($select->hasPart('limitCount') && $select->getPart('limitCount') <= count($ret)) {
+                                        return $ret;
+                                    }
                                 }
                             }
                         }
@@ -624,7 +645,7 @@ class Kwf_Component_Data
         $ret = array();
         $this->_recursiveGeneratorsCache[$cacheId] = array();
         foreach (Kwf_Component_Generator_Abstract::getInstances($componentClass, $select) as $generator) {
-            if ($childClasses = $generator->getChildComponentClasses($select)) {
+            if ($childClasses = $generator->getChildComponentClassesWithoutAlternativeComponents($select)) {
                 $staticParentIds = false;
                 if ($generator->getGeneratorFlag('static')) {
                     if ($generator->getGeneratorFlag('staticSelect')) {
@@ -654,7 +675,7 @@ class Kwf_Component_Data
             }
         }
         foreach (Kwf_Component_Generator_Abstract::getInstances($componentClass, $childSelect) as $generator) {
-            $childClasses = $generator->getChildComponentClasses($childSelect);
+            $childClasses = $generator->getChildComponentClassesWithoutAlternativeComponents($childSelect);
             $g = $this->_getRecursiveGenerators($childClasses, $select, $childSelect, $selectHash);
             foreach ($g as $i) {
                 foreach ($ret as $j) {

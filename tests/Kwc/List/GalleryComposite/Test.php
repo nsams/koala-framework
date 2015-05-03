@@ -26,6 +26,13 @@ class Kwc_List_GalleryComposite_Test extends Kwc_TestAbstract
         $this->assertNotContains('nextBtn">', $html);
     }
 
+    public function testRecCC()
+    {
+        $c = $this->_root->getComponentById('root_page1-1');
+        $c = $c->getRecursiveChildComponents(array('componentClass'=>'Kwc_Basic_ImageEnlarge_EnlargeTag_ImagePage_Component'));
+        $this->assertEquals(1, count($c));
+    }
+
     public function testChangeOrder()
     {
         $this->_root->getComponentById('root_page1-1-imageEnlarge-linkTag_imagePage')->render();

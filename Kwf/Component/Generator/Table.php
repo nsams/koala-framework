@@ -162,7 +162,7 @@ class Kwf_Component_Generator_Table extends Kwf_Component_Generator_Abstract
                 if ($p->dbId != substr($row->component_id, 0, strlen($p->dbId))) {
                     //some child might have a dbIdShortcut
                     $found = false;
-                    foreach ($this->_getPossibleIndirectDbIdShortcuts($p->componentClass) as $dbIdShortcut) {
+                    foreach (self::getPossibleIndirectDbIdShortcuts($this->_class, $p->componentClass) as $dbIdShortcut) {
                         if (substr($row->component_id, 0, strlen($dbIdShortcut)) == $dbIdShortcut) {
                             $found = true;
                         }
@@ -242,7 +242,7 @@ class Kwf_Component_Generator_Table extends Kwf_Component_Generator_Abstract
                     new Kwf_Model_Select_Expr_Equal('component_id', $p->dbId),
                 );
 
-                foreach ($this->_getPossibleIndirectDbIdShortcuts($p->componentClass) as $dbIdShortcut) {
+                foreach (self::getPossibleIndirectDbIdShortcuts($this->_class, $p->componentClass) as $dbIdShortcut) {
                     $ors[] = new Kwf_Model_Select_Expr_StartsWith('component_id', $dbIdShortcut);
                 }
 

@@ -11,7 +11,7 @@ class Kwc_Abstract_List_RecursiveDataResolver extends Kwf_Component_Generator_Re
             );
 
             /*
-            foreach ($this->_getPossibleIndirectDbIdShortcuts($p->componentClass) as $dbIdShortcut) {
+            foreach (Kwf_Component_Generator_Abstract::getPossibleIndirectDbIdShortcuts($this->_class, $p->componentClass) as $dbIdShortcut) {
                 $ors[] = new Kwf_Model_Select_Expr_StartsWith('component_id', $dbIdShortcut);
             }
             */

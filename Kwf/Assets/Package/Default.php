@@ -18,7 +18,7 @@ class Kwf_Assets_Package_Default extends Kwf_Assets_Package
         return self::$_instances[$dependencyName];
     }
 
-    public function clearInstances()
+    public static function clearInstances()
     {
         self::$_instances = array();
     }
