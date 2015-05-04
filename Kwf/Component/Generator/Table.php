@@ -95,6 +95,9 @@ class Kwf_Component_Generator_Table extends Kwf_Component_Generator_Abstract
     {
         //Kwf_Debug::bt();
         Kwf_Benchmark::count('GenTable::getChildData', $this->getClass().' '.get_class($this));
+        if (!$parentData) {
+            Kwf_Benchmark::count('GenTable::getChildData no parentData', $this->getClass().' '.get_class($this));
+        }
         if (is_array($select)) $select = new Kwf_Component_Select($select);
         $ret = array();
         if (!$parentData && ($p = $select->getPart(Kwf_Component_Select::WHERE_CHILD_OF))
