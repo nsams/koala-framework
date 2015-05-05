@@ -57,6 +57,7 @@ class Kwc_Paragraphs_RecursiveDataResolver extends Kwf_Component_Generator_Recur
 
             }
         }
+        $components = array_unique($components);
         $select->whereEquals('component', $components);
         $ret = array();
         $s = array();

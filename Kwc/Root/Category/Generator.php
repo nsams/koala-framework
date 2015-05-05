@@ -25,6 +25,11 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
     {
         if (!array_key_exists($id, $this->_pageDataCache)) {
 
+            if (!(int)$id) {
+                throw new Kwf_Exception("Invalid Id: '$id'");
+            }
+            $id = (int)$id;
+
             $cacheId = 'pd-'.$id;
             $ret = Kwf_Cache_Simple::fetch($cacheId);
             if ($ret === false) {
@@ -243,6 +248,10 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
             $pagesSelect = new Kwf_Model_Select();
 
             if ($id = $select->getPart(Kwf_Component_Select::WHERE_ID)) {
+
+                if (!(int)$id) {
+                    return array();
+                }
                 //query only by id, no db query required
                 $pageIds = array($id);
 
@@ -592,4 +601,8 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
             return parent::getDeviceVisible($data);
         }
     }
+//     public function getRecursiveDataResolver()
+//     {
+//         return 'Kwc_Root_Category_RecursiveDataResolver';
+//     }
 }

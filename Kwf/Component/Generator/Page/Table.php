@@ -33,4 +33,12 @@ class Kwf_Component_Generator_Page_Table extends Kwf_Component_Generator_PseudoP
         return $ret;
     }
 
+
+    public function getChildData($parentData, $select = array())
+    {
+        $ret = parent::getChildData($parentData, $select);
+        return $ret;
+    }
+
+
 }
