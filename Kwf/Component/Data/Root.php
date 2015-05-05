@@ -307,13 +307,33 @@ class Kwf_Component_Data_Root extends Kwf_Component_Data
                     }
                     $s = new Kwf_Component_Select($s);
                 }
-                if ($i == 0 && !$found) { // Muss eine Page sein
+                if ($i == 0 && !$found) { // must be a page
                     $ret = null;
                     $generators = $this->getPageGenerators();
+                    /*
+                    $recursiveDataResolvers = array();
+                    foreach ($generators as $generator) {
+                        $r = $generator->getRecursiveDataResolver();
+                        if ($r) {
+                            if (!isset($recursiveDataResolvers[$r])) $recursiveDataResolvers[$r] = array();
+                            $recursiveDataResolvers[$r][] = $generator;
+                        } else {
+                            throw new Kwf_Exception("Page Generator doesn't have recursiveDataResolver");
+                            $ret = array_pop($generator->getChildData(null, $s));
+                            if ($ret) break;
+                        }
+                    }
+                    foreach ($recursiveDataResolvers as $recursiveDataResolverClass=>$generators) {
+                        $resolver = new $recursiveDataResolverClass();
+                        $ret = array_pop($resolver->getRecursive($generators, $s));
+                        if ($ret) break;
+                    }
+                    */
                     foreach ($generators as $generator) {
                         $ret = array_pop($generator->getChildData(null, $s));
                         if ($ret) break;
                     }
+
                 } else {
                     $ret = $ret->getChildComponent($s);
                 }

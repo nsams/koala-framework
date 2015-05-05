@@ -69,6 +69,7 @@ class Kwf_Db_Profiler extends Zend_Db_Profiler
         self::$_staticCount++;
         if ($this->_logger) {
             $this->_logger->info($this->_count.' ----------------------');
+            if (strlen($queryText) > 1000) $queryText = substr($queryText, 0, 1000).'...';
             $this->_logger->debug($queryText);
             //$this->_logger->debug(btString());
         }
@@ -103,7 +104,9 @@ class Kwf_Db_Profiler extends Zend_Db_Profiler
 
             if ($this->_logger) {
                 if ($this->_lastQuery->getQueryParams()) {
-                    $this->_logger->debug(print_r($this->_lastQuery->getQueryParams(), true));
+                    $out = print_r($this->_lastQuery->getQueryParams(), true);
+                    if (strlen($out) > 1000) $out = substr($out, 0, 1000).'...';
+                    $this->_logger->debug($out);
                 }
                 $this->_logger->debug($this->_lastQuery->getElapsedSecs());
                 $this->_sumTime += $this->_lastQuery->getElapsedSecs();

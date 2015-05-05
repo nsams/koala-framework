@@ -56,6 +56,7 @@ class Kwc_Abstract_Cards_RecursiveDataResolver extends Kwf_Component_Generator_R
 
             }
         }
+        $components = array_unique($components);
         $select->whereEquals('component', $components);
         $ret = array();
         $s = array();
