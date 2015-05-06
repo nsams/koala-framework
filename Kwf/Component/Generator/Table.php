@@ -102,13 +102,18 @@ class Kwf_Component_Generator_Table extends Kwf_Component_Generator_Abstract
         $ret = array();
         if (!$parentData && ($p = $select->getPart(Kwf_Component_Select::WHERE_CHILD_OF))
                 && !$this->_getUseComponentId()) {
-            $parentDatas = $p->getRecursiveChildComponents(array(
-                'componentClass' => $this->_class
-            ));
+            if ($p->componentClass == $this->_class) {
+                $parentDatas = array(
+                    $p
+                );
+            } else {
+                $parentDatas = $p->getRecursiveChildComponents(array(
+                    'componentClass' => $this->_class
+                ));
+            }
         } else {
             $parentDatas = array($parentData /* kann auch null sein*/);
         }
-
         foreach ($parentDatas as $parentData) {
             $s = $this->_formatSelect($parentData, clone $select);
             $rows = array();
