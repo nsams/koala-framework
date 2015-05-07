@@ -60,7 +60,7 @@ class Kwf_Dao
              */
 //             $this->_db[$db]->query("SET lc_time_names = '".trlKwf('en_US')."'");
 
-
+/*
             if (Kwf_Config::getValue('debug.querylog')) {
                 $profiler = new Kwf_Db_Profiler(true);
                 $this->_db[$db]->setProfiler($profiler);
@@ -71,6 +71,9 @@ class Kwf_Dao
                 $profiler = new Kwf_Db_Profiler_Count(true);
                 $this->_db[$db]->setProfiler($profiler);
             }
+*/
+            $profiler = new Kwf_Db_Profiler_Count(true);
+            $this->_db[$db]->setProfiler($profiler);
         }
         return $this->_db[$db];
     }

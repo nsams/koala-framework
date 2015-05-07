@@ -515,7 +515,21 @@ abstract class Kwf_Component_Renderer_Abstract
 
     private function _cacheSave($componentId, $type, $value, $content)
     {
+        static $stmt;
+        if (!isset($stmt)) {
+            $stmt = Zend_Registry::get('db')->prepare(
+                'SELECT target_id FROM cache_component_includes
+                    WHERE component_id=? AND type=?'
+            );
+        }
+        $stmt->execute(array((string)$componentId, $type));
+        $existingTargetIds = array();
+        while ($i = $stmt->fetchColumn()) {
+            $existingTargetIds[] = $i;
+        }
+
         $m = Kwf_Component_Cache::getInstance()->getModel('includes');
+/*
         $s = $m->select()
             ->whereEquals('component_id', $componentId)
             ->whereEquals('type', $type);
@@ -523,6 +537,7 @@ abstract class Kwf_Component_Renderer_Abstract
         foreach ($m->export(Kwf_Model_Abstract::FORMAT_ARRAY, $s, array('columns'=>array('target_id'))) as $i) {
             $existingTargetIds[] = $i['target_id'];
         }
+*/
         $newTargetIds = array();
         if ($this->_includedComponents) {
             $data = array();
