@@ -73,6 +73,7 @@ class Kwf_Component_Cache_Mysql extends Kwf_Component_Cache
         $data = Kwf_Component_Cache_Memory::getInstance()->loadWithMetaData($cacheId);
         if ($data === false || !is_array($data)) {
             Kwf_Benchmark::count('comp cache mysql');
+/*
             $select = $this->getModel('cache')->select()
                 ->whereEquals('component_id', (string)$componentId)
                 ->whereEquals('renderer', $renderer)
@@ -90,16 +91,45 @@ class Kwf_Component_Cache_Mysql extends Kwf_Component_Cache
                 'columns' => array('content', 'expire'),
             );
             $row = $this->getModel('cache')->export(Kwf_Model_Db::FORMAT_ARRAY, $select, $options);
-            if (isset($row[0])) {
+            if ($row) $row = $row[0];
+*/
+            if ($data) {
+                static $stmt1;
+                if (!isset($stmt1)) {
+                    $stmt1 = Zend_Registry::get('db')->prepare(
+                        'SELECT content, expire FROM cache_component
+                            WHERE component_id=? AND renderer=? AND type=? AND deleted=0 AND value=?
+                            AND (expire > '.time().' OR ISNULL(expire))
+                            AND microtime > ?'
+                    );
+                }
+                $stmt1->execute(array((string)$componentId, $renderer, $type, $value, $data));
+                $row = $stmt1->fetch(Zend_Db::FETCH_ASSOC);
+
+            } else {
+                static $stmt2;
+                if (!isset($stmt2)) {
+                    $stmt2 = Zend_Registry::get('db')->prepare(
+                        'SELECT content, expire FROM cache_component
+                            WHERE component_id=? AND renderer=? AND type=? AND deleted=0 AND value=?
+                            AND (expire > '.time().' OR ISNULL(expire))'
+                    );
+                }
+                $stmt2->execute(array((string)$componentId, $renderer, $type, $value));
+                $row = $stmt2->fetch(Zend_Db::FETCH_ASSOC);
+            }
+
+            if ($row) {
                 Kwf_Benchmark::countLog('viewcache-db');
                 $ttl = null;
-                if ($row[0]['expire']) {
-                    $ttl = $row[0]['expire']-time();
+                p($row);
+                if ($row['expire']) {
+                    $ttl = $row['expire']-time();
                 }
-                Kwf_Component_Cache_Memory::getInstance()->save($row[0]['content'], $cacheId, $ttl);
+                Kwf_Component_Cache_Memory::getInstance()->save($row['content'], $cacheId, $ttl);
                 $data = array(
-                    'contents' => $row[0]['content'],
-                    'expire' => $row[0]['expire']
+                    'contents' => $row['content'],
+                    'expire' => $row['expire']
                 );
             } else {
                 Kwf_Benchmark::countLog('viewcache-miss');
