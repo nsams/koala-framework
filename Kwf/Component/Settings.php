@@ -340,8 +340,16 @@ class Kwf_Component_Settings
         }
 
         $cacheId = 'cs-'.$class.'-'.$setting;
+        static $cache = array();
+        if (isset($cache[$cacheId])) {
+            $ret = $cache[$cacheId];
+            if ($ret === 'kwfnull') $ret = null;
+            return $ret;
+        }
+
         $ret = Kwf_Cache_SimpleStatic::fetch($cacheId, $success);
         if ($success) {
+            $cache[$cacheId] = $ret;
             return $ret;
         }
 
@@ -363,6 +371,7 @@ class Kwf_Component_Settings
             }
         }
         Kwf_Cache_SimpleStatic::add($cacheId, $ret);
+        $cache[$cacheId] = $ret;
         return $ret;
     }
 
@@ -456,8 +465,13 @@ class Kwf_Component_Settings
     static public function getFlag($class, $flag)
     {
         $cacheId = 'flag-'.$class.'-'.$flag;
+        static $cache = array();
+        if (isset($cache[$cacheId])) {
+            return $cache[$cacheId];
+        }
         $ret = Kwf_Cache_SimpleStatic::fetch($cacheId, $success);
         if ($success) {
+            $cache[$cacheId] = $ret;
             return $ret;
         }
 
