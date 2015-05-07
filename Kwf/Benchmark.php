@@ -256,7 +256,13 @@ class Kwf_Benchmark
                         $percent = ($subCheckpoints[0][$k]/$sum)*100;
                         if ($percent > 1) {
                             echo "<tr>";
-                            echo "<td>".round($subCheckpoints[0][$k]*1000)."</td>";
+                            $t = $subCheckpoints[0][$k]*1000;
+                            if ($t < 10) {
+                                $t = round($t, 1);
+                            } else {
+                                $t = round($t);
+                            }
+                            echo "<td>".$t."</td>";
                             echo "<td>".round($percent)."</td>";
                             echo "<td>&nbsp;&nbsp;".$subCheckpoints[1][$k]."</td>";
                             echo "</tr>";
