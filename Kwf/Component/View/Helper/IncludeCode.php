@@ -58,7 +58,7 @@ class Kwf_Component_View_Helper_IncludeCode extends Kwf_Component_View_Helper_Ab
             $helper = new Kwf_Component_View_Helper_Dynamic();
             $helper->setRenderer($this->_getRenderer());
             $helper->setView($this->_getView());
-            $ret .= $helper->dynamic('SessionToken');
+            $ret .= $helper->dynamic('Kwf_Component_Dynamic_SessionToken');
 
         } else if ($position == 'footer') {
             if (!$statisticsBoxUsed) {
