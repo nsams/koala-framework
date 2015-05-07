@@ -106,13 +106,8 @@ abstract class Kwf_Component_Abstract_ContentSender_Abstract
         $process = $data
             ->getRecursiveChildComponents(array(
                     'page' => false,
-                    'flags' => array('processInput' => true)
+                    'flags' => array('processInput' => true, 'forwardProcessInput' => true)
                 ));
-        $process = array_merge($process, $data
-            ->getRecursiveChildComponents(array(
-                    'page' => false,
-                    'flags' => array('forwardProcessInput' => true)
-                )));
         if (Kwf_Component_Abstract::getFlag($data->componentClass, 'processInput')) {
             $process[] = $data;
         }

@@ -581,10 +581,15 @@ abstract class Kwf_Component_Generator_Abstract
         if ($select->hasPart(Kwf_Component_Select::WHERE_FLAGS)) {
             $flags = $select->getPart(Kwf_Component_Select::WHERE_FLAGS);
             foreach ($ret as $k=>$c) {
+                $matches = false;
                 foreach ($flags as $f=>$v) {
-                    if (Kwc_Abstract::getFlag($c, $f) != $v) {
-                        unset($ret[$k]);
+                    if (Kwc_Abstract::getFlag($c, $f) == $v) {
+                        $matches = true;
+                        break;
                     }
+                }
+                if (!$matches) {
+                    unset($ret[$k]);
                 }
             }
         }
