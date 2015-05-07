@@ -14,7 +14,7 @@ class Kwf_Component_Generator_RecursiveDataResolver_Abstract
         $rows = array();
         foreach ($models as $m) {
             $s = clone $select;
-            $this->_formatSelect($m, $select);
+            $this->_formatSelect($m, $s);
             foreach ($m->getRows($s) as $row) {
                 $rows[] = $row;
             }

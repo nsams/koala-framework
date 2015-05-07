@@ -8,8 +8,6 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
 
     protected $_useMobileBreakpoints = NULL;
 
-    protected $_pageDataCache = array();
-
     private $_basesCache = array();
     protected $_eventsClass = 'Kwc_Root_Category_GeneratorEvents';
 
@@ -21,74 +19,12 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
         }
     }
 
-    private function _getPageData($id)
+    private function _getModelCache()
     {
-        if (!array_key_exists($id, $this->_pageDataCache)) {
-
-            if (!(int)$id) {
-                throw new Kwf_Exception("Invalid Id: '$id'");
-            }
-            $id = (int)$id;
-
-            $cacheId = 'pd-'.$id;
-            $ret = Kwf_Cache_Simple::fetch($cacheId);
-            if ($ret === false) {
-                Kwf_Benchmark::count('GenPage::loadPageData');
-                $cols = array('id', 'pos', 'is_home', 'name', 'filename', 'visible', 'component', 'hide', 'custom_filename', 'parent_id', 'parent_subroot_id');
-                if ($this->_useMobileBreakpoints) $cols[] = 'device_visible';
-                $ret = $this->_getModel()->fetchColumnsByPrimaryId($cols, $id);
-                if ($ret) {
-                    if ($ret['is_home']) $ret['visible'] = 1;
-                    $ret['parent_visible'] = $ret['visible'];
-                    $i = $ret['parent_id'];
-                    $ret['parent_ids'] = array($i);
-                    while (is_numeric($i)) {
-                        $pd = $this->_getPageData($i);
-                        if ($pd) {
-                            $ret['parent_ids'][] = $pd['parent_id'];
-                            if (count($ret['parent_ids']) > 20) {
-                                throw new Kwf_Exception('probably endless recursion with parents');
-                            }
-                            $ret['parent_visible'] = $ret['parent_visible'] && $pd['visible'];
-                            $i = $pd['parent_id'];
-                        } else {
-                            //page seems to be floating (without parent)
-                            $ret = null;
-                            break;
-                        }
-                    }
-                } else {
-                    $ret = null;
-                }
-                Kwf_Cache_Simple::add($cacheId, $ret);
-            }
-            $this->_pageDataCache[$id] = $ret;
+        if (!isset($this->_modelCache)) {
+            $this->_modelCache = new Kwc_Root_Category_ModelCache($this->_getModel(), $this->_settings['component'], $this->_useMobileBreakpoints);
         }
-        return $this->_pageDataCache[$id];
-    }
-
-    private function _getChildPageIds($parentId)
-    {
-        $cacheId = 'pcIds-'.$parentId;
-        $ret = Kwf_Cache_Simple::fetch($cacheId);
-        if ($ret === false) {
-            Kwf_Benchmark::count('GenPage::query',  'childIds('.$parentId.')');
-
-            $select = new Kwf_Model_Select();
-            if (is_numeric($parentId)) {
-                $select->whereEquals('parent_id', $parentId);
-            } else {
-                $select->where(new Kwf_Model_Select_Expr_Like('parent_id', $parentId.'%'));
-            }
-            $select->order('pos');
-            $rows = $this->_getModel()->export(Kwf_Model_Interface::FORMAT_ARRAY, $select, array('columns'=>array('id')));
-            $ret = array();
-            foreach ($rows as $row) {
-                $ret[] = $row['id'];
-            }
-            Kwf_Cache_Simple::add($cacheId, $ret);
-        }
-        return $ret;
+        return $this->_modelCache;
     }
 
     /**
@@ -97,7 +33,7 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
     public function getRecursivePageChildIds($parentId)
     {
         $select = new Kwf_Model_Select();
-        $ret = $this->_getChildPageIds($parentId);
+        $ret = $this->_getModelCache()->getChildPageIds($parentId);
         foreach ($ret as $i) {
             $ret = array_merge($ret, $this->getRecursivePageChildIds($i));
         }
@@ -134,11 +70,11 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
 
         $select = $this->_formatSelect($parentData, $select);
         if (is_null($select)) return array();
-        $pageIds = $this->_getPageIds($parentData, $select);
+        $pageIds = $this->_getModelCache()->getPageIds($parentData, $select);
 
         $ret = array();
         foreach ($pageIds as $pageId) {
-            $page = $this->_getPageData($pageId);
+            $page = $this->_getModelCache()->getPageData($pageId);
             if (!$page) continue; //can happen for floating page (without valid parent)
             if ($select->hasPart(Kwf_Component_Select::WHERE_SHOW_IN_MENU)) {
                 $menu = $select->getPart(Kwf_Component_Select::WHERE_SHOW_IN_MENU);
@@ -158,196 +94,9 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
         return $ret;
     }
 
-    protected function _getPageIds($parentData, $select)
-    {
-        if (!$parentData && ($p = $select->getPart(Kwf_Component_Select::WHERE_CHILD_OF))) {
-            if ($p->getPage()) $p = $p->getPage();
-            $parentData = $p;
-        }
-        $pageIds = array();
-
-        if ($parentData && !$select->hasPart(Kwf_Component_Select::WHERE_ID)) {
-            // diese Abfragen sind implizit recursive=true
-            $parentId = $parentData->dbId;
-
-            if ($select->getPart(Kwf_Component_Select::WHERE_HOME)) {
-
-                $s = new Kwf_Model_Select();
-                $s->whereEquals('is_home', true);
-                $s->whereEquals('parent_subroot_id', $parentData->getSubroot()->dbId); //performance to look only in subroot - correct filterting done below
-                Kwf_Benchmark::count('GenPage::query', 'home');
-                $rows = $this->_getModel()->export(Kwf_Model_Interface::FORMAT_ARRAY, $s, array('columns'=>array('id')));
-                $homePages = array();
-                foreach ($rows as $row) {
-                    $homePages[] = $row['id'];
-                }
-
-                foreach ($homePages as $pageId) {
-                    $pd = $this->_getPageData($pageId);
-                    if (substr($pd['parent_id'], 0, strlen($parentId)) == $parentId) {
-                        $pageIds[] = $pageId;
-                        continue;
-                    }
-                    foreach ($pd['parent_ids'] as $pageParentId) {
-                        if ($pageParentId == $parentId) {
-                            $pageIds[] = $pageId;
-                            break;
-                        }
-                    }
-                }
-
-            } else if ($select->hasPart(Kwf_Component_Select::WHERE_FILENAME)) {
-                $filename = $select->getPart(Kwf_Component_Select::WHERE_FILENAME);
-                $cacheId = 'pcFnIds-'.$parentId.'-'.$filename;
-                $pageIds = Kwf_Cache_Simple::fetch($cacheId);
-                if ($pageIds === false) {
-                    $s = new Kwf_Model_Select();
-                    $s->whereEquals('filename', $filename);
-                    if (is_numeric($parentId)) {
-                        $s->whereEquals('parent_id', $parentId);
-                    } else {
-                        $s->where(new Kwf_Model_Select_Expr_Like('parent_id', $parentId.'%'));
-                    }
-                    Kwf_Benchmark::count('GenPage::query', 'filename');
-                    $rows = $this->_getModel()->export(Kwf_Model_Interface::FORMAT_ARRAY, $s, array('columns'=>array('id')));
-                    $pageIds = array();
-                    foreach ($rows as $row) {
-                        $pageIds[] = $row['id'];
-                    }
-                    Kwf_Cache_Simple::add($cacheId, $pageIds);
-                }
-            } else if ($select->hasPart(Kwf_Component_Select::WHERE_COMPONENT_CLASSES)) {
-                $selectClasses = $select->getPart(Kwf_Component_Select::WHERE_COMPONENT_CLASSES);
-                $keys = array();
-                foreach ($selectClasses as $selectClass) {
-                    $key = array_search($selectClass, $this->_settings['component']);
-                    if ($key) $keys[] = $key;
-                }
-
-                $s = new Kwf_Model_Select();
-                $s->whereEquals('component', array_unique($keys));
-                if (is_numeric($parentId)) {
-                    $s->whereEquals('parent_id', $parentId);
-                } else {
-                    $s->where(new Kwf_Model_Select_Expr_Like('parent_id', $parentId.'%'));
-                }
-                Kwf_Benchmark::count('GenPage::query', 'component');
-                $rows = $this->_getModel()->export(Kwf_Model_Interface::FORMAT_ARRAY, $s, array('columns'=>array('id')));
-                foreach ($rows as $row) {
-                    $pageIds[] = $row['id'];
-                }
-
-            } else {
-
-                $pageIds = $this->_getChildPageIds($parentId);
-
-            }
-
-        } else {
-
-            $pagesSelect = new Kwf_Model_Select();
-
-            if ($id = $select->getPart(Kwf_Component_Select::WHERE_ID)) {
-
-                if (!(int)$id) {
-                    return array();
-                }
-                //query only by id, no db query required
-                $pageIds = array($id);
-
-                if ($sr = $select->getPart(Kwf_Component_Select::WHERE_SUBROOT)) {
-                    $pd = $this->_getPageData($id);
-                    if ($pd['parent_subroot_id'] != $sr[0]->dbId) {
-                        $pageIds = array();
-                    }
-                }
-
-                if ($pageIds && $select->hasPart(Kwf_Component_Select::WHERE_COMPONENT_CLASSES)) {
-                    $selectClasses = $select->getPart(Kwf_Component_Select::WHERE_COMPONENT_CLASSES);
-                    $keys = array();
-                    foreach ($selectClasses as $selectClass) {
-                        $key = array_search($selectClass, $this->_settings['component']);
-                        if ($key && !in_array($key, $keys)) $keys[] = $key;
-                    }
-                    $pd = $this->_getPageData($id);
-                    if (!in_array($pd['component'], $keys)) {
-                        $pageIds = array();
-                    }
-                }
-
-                if ($pageIds && $select->getPart(Kwf_Component_Select::WHERE_HOME)) {
-                    $pd = $this->_getPageData($id);
-                    if (!$pd['is_home']) {
-                        $pageIds = array();
-                    }
-                }
-
-            } else {
-                $benchmarkType = '';
-                if ($select->hasPart(Kwf_Component_Select::WHERE_SUBROOT)) {
-
-                    $subroot = $select->getPart(Kwf_Component_Select::WHERE_SUBROOT);
-                    $subroot = $subroot[0];
-                    $pagesSelect->whereEquals('parent_subroot_id', $subroot->dbId);
-                    $benchmarkType .= 'subroot ';
-                }
-
-                if ($select->getPart(Kwf_Component_Select::WHERE_HOME)) {
-                    $pagesSelect->whereEquals('is_home', true);
-                    $benchmarkType .= 'home ';
-                }
-                if ($id = $select->getPart(Kwf_Component_Select::WHERE_ID)) {
-                    $pagesSelect->whereEquals('id', $id);
-                    $benchmarkType .= 'id ';
-                }
-                if ($select->hasPart(Kwf_Component_Select::WHERE_COMPONENT_CLASSES)) {
-                    $selectClasses = $select->getPart(Kwf_Component_Select::WHERE_COMPONENT_CLASSES);
-                    $keys = array();
-                    foreach ($selectClasses as $selectClass) {
-                        $key = array_search($selectClass, $this->_settings['component']);
-                        if ($key && !in_array($key, $keys)) $keys[] = $key;
-                    }
-                    $pagesSelect->whereEquals('component', $keys);
-                    $benchmarkType .= 'component ';
-                }
-                Kwf_Benchmark::count('GenPage::query', "noparent(".trim($benchmarkType).")");
-                $rows = $this->_getModel()->export(Kwf_Model_Interface::FORMAT_ARRAY, $pagesSelect, array('columns'=>array('id')));
-                $pageIds = array();
-                foreach ($rows as $row) {
-                    $pageIds[] = $row['id'];
-                }
-            }
-
-            if ($parentData) {
-                $parentId = $parentData->dbId;
-                foreach ($pageIds as $k=>$pageId) {
-                    $match = false;
-                    $pd = $this->_getPageData($pageId);
-                    if (!$pd) continue;
-                    if (substr($pd['parent_id'], 0, strlen($parentId)) == $parentId) {
-                        $match = true;
-                    }
-                    if (!$match) {
-                        foreach ($pd['parent_ids'] as $pageParentId) {
-                            if ($pageParentId == $parentId) {
-                                $match = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!$match) {
-                        unset($pageIds[$k]);
-                    }
-                }
-            }
-        }
-
-        return $pageIds;
-    }
-
     protected function _createData($parentData, $id, $select)
     {
-        $page = $this->_getPageData($id);
+        $page = $this->_getModelCache()->getPageData($id);
 
         if (!$parentData || ($parentData->componentClass == $this->_class && $page['parent_id'])) {
             $parentData = $page['parent_id'];
@@ -378,7 +127,7 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
     protected function _formatConfig($parentData, $id)
     {
         $data = array();
-        $page = $this->_getPageData($id);
+        $page = $this->_getModelCache()->getPageData($id);
         $data['filename'] = $page['filename'];
         $data['rel'] = '';
         $data['name'] = $page['name'];
@@ -405,7 +154,7 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
 
     protected function _getDataClass($config, $id)
     {
-        $page = $this->_getPageData($id);
+        $page = $this->_getModelCache()->getPageData($id);
         if ($page['is_home']) {
             return 'Kwf_Component_Data_Home';
         } else {
@@ -477,7 +226,7 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
     {
         $ret = 1;
         $ret += Kwc_Admin::getInstance($source->componentClass)->getDuplicateProgressSteps($source);
-        foreach ($this->_getChildPageIds($source->id) as $i) {
+        foreach ($this->_getModelCache()->getChildPageIds($source->id) as $i) {
             $data = $this->getChildData(null, array('id'=>$i, 'ignoreVisible'=>true));
             $data = array_shift($data);
             $ret += $this->getDuplicateProgressSteps($data);
@@ -506,7 +255,7 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
 
     private function _duplicatePageRecursive($parentSourceId, $parentTargetId, $childId, Zend_ProgressBar $progressBar = null)
     {
-        $pd = $this->_getPageData($childId);
+        $pd = $this->_getModelCache()->getPageData($childId);
         if ($progressBar) $progressBar->next(1, trlKwf("Pasting {0}", $pd['name']));
 
         $data = array();
@@ -564,7 +313,7 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
         echo "\n";
         */
 
-        foreach ($this->_getChildPageIds($childId) as $i) {
+        foreach ($this->_getModelCache()->getChildPageIds($childId) as $i) {
             if ($i != $targetId) { //no endless recursion id page is pasted below itself
                 $this->_duplicatePageRecursive($sourceId, $targetId, $i, $progressBar);
             }
@@ -601,8 +350,9 @@ class Kwc_Root_Category_Generator extends Kwf_Component_Generator_Abstract
             return parent::getDeviceVisible($data);
         }
     }
-//     public function getRecursiveDataResolver()
-//     {
-//         return 'Kwc_Root_Category_RecursiveDataResolver';
-//     }
+
+    public function getRecursiveDataResolver()
+    {
+        return 'Kwc_Root_Category_RecursiveDataResolver';
+    }
 }
