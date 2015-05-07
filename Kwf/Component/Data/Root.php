@@ -310,7 +310,6 @@ class Kwf_Component_Data_Root extends Kwf_Component_Data
                 if ($i == 0 && !$found) { // must be a page
                     $ret = null;
                     $generators = $this->getPageGenerators();
-                    /*
                     $recursiveDataResolvers = array();
                     foreach ($generators as $generator) {
                         $r = $generator->getRecursiveDataResolver();
@@ -328,11 +327,12 @@ class Kwf_Component_Data_Root extends Kwf_Component_Data
                         $ret = array_pop($resolver->getRecursive($generators, $s));
                         if ($ret) break;
                     }
-                    */
+                    /*
                     foreach ($generators as $generator) {
                         $ret = array_pop($generator->getChildData(null, $s));
                         if ($ret) break;
                     }
+                    */
 
                 } else {
                     $ret = $ret->getChildComponent($s);
