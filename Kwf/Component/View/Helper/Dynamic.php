@@ -4,11 +4,15 @@ class Kwf_Component_View_Helper_Dynamic extends Kwf_Component_View_Renderer
     public function dynamic($class)
     {
         $component = $this->_getView()->data;
-        $dynamicClass = Kwf_Component_Abstract_Admin::getComponentClass($component->componentClass, $class);
-        if (!class_exists($dynamicClass))
-            $dynamicClass = 'Kwf_Component_Dynamic_' . $class;
-        if (!class_exists($dynamicClass))
-            throw new Kwf_Exception("Dynamic Class not found: $dynamicClass");
+        if (substr($class, 0, 4) === 'Kwf_') {
+            $dynamicClass = $class;
+        } else {
+            $dynamicClass = Kwf_Component_Abstract_Admin::getComponentClass($component->componentClass, $class);
+            if (!class_exists($dynamicClass))
+                $dynamicClass = 'Kwf_Component_Dynamic_' . $class;
+            if (!class_exists($dynamicClass))
+                throw new Kwf_Exception("Dynamic Class not found: $dynamicClass");
+        }
         $config = array(
             'class' => $dynamicClass,
             'arguments' => array_slice(func_get_args(), 1)
