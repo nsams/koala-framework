@@ -1,9 +1,9 @@
 <?php
 class Kwc_Basic_ImageEnlarge_EnlargeTag_ImagePage_Component extends Kwc_Abstract
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['contentSender'] = 'Kwc_Basic_ImageEnlarge_EnlargeTag_ImagePage_ContentSender';
         $ret['assetsDefer']['dep'][] = 'KwfLightbox';
         $ret['assetsDefer']['dep'][] = 'KwfResponsiveImg';

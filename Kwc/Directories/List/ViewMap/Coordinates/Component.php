@@ -1,9 +1,9 @@
 <?php
 class Kwc_Directories_List_ViewMap_Coordinates_Component extends Kwc_Abstract_Ajax_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['viewCache'] = false;
         return $ret;
     }

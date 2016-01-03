@@ -1,9 +1,9 @@
 <?php
 abstract class Kwc_Advanced_GoogleMapView_Component extends Kwc_Abstract_Composite_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['assetsDefer']['dep'][] = 'KwfGoogleMap';
         $ret['assetsDefer']['dep'][] = 'ExtUtilJson';
         $ret['placeholder']['noCoordinates'] = ''; //leer, wird in GoogleMap benötgit damit man im backend sieht was falsch ist

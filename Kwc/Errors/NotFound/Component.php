@@ -1,9 +1,9 @@
 <?php
 class Kwc_Errors_NotFound_Component extends Kwc_Abstract
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['viewCache'] = false;
         return $ret;
     }

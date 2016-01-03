@@ -1,9 +1,9 @@
 <?php
 class Kwc_User_Detail_Component extends Kwc_Directories_Item_Detail_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['generators']['child']['component']['general'] = 'Kwc_User_Detail_GeneralCommunity_Component';
         $ret['cssClass'] = 'webStandard';
         return $ret;

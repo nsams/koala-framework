@@ -1,9 +1,9 @@
 <?php
 class Kwc_Root_Abstract extends Kwc_Abstract implements Kwf_Util_Maintenance_JobProviderInterface
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['generators']['box'] = array(
             'class' => 'Kwf_Component_Generator_Box_Static',
             'component' => array(),

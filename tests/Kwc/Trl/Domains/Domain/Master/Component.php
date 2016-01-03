@@ -1,9 +1,9 @@
 <?php
 class Kwc_Trl_Domains_Domain_Master_Component extends Kwc_Root_TrlRoot_Master_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['generators']['category'] = array(
             'class' => 'Kwc_Root_CategoryGenerator',
             'component' => 'Kwc_Trl_Domains_Domain_Master_Category_Component',

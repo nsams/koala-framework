@@ -3,7 +3,7 @@ class Kwf_Component_Cache_Chained_StartChained_Component extends Kwc_Chained_Sta
 {
     public static function getSettings($masterComponentClass)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $copySettings = array('editComponents');
         $copyFlags = array('subroot');
         $ret = Kwc_Chained_Abstract_Component::getChainedSettings($ret, $masterComponentClass, 'Trl', $copySettings, $copyFlags);

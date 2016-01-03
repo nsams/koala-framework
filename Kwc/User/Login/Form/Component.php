@@ -1,16 +1,16 @@
 <?php
 class Kwc_User_Login_Form_Component extends Kwc_Form_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['placeholder']['submitButton'] = trlKwfStatic('Login');
         $ret['generators']['child']['component']['success'] = 'Kwc_User_Login_Form_Success_Component';
         $ret['plugins'][] = 'Kwc_User_Login_Form_UseViewCachePlugin';
         return $ret;
     }
 
-    public function preProcessInput($postData)
+    public function preProcessInput(array $postData)
     {
         $this->_processInput($postData);
         parent::preProcessInput($postData);

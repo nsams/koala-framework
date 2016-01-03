@@ -1,9 +1,9 @@
 <?php
 class Kwc_ImageResponsive_MediaOutput_Root_Component extends Kwc_Root_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
 
         $ret['generators']['imageabstract1'] = array(
             'class' => 'Kwf_Component_Generator_Page_Static',

@@ -3,9 +3,9 @@ class Kwc_Directories_Item_Detail_Related_Component extends Kwc_Abstract
 {
     protected $_relatedCache = null;
 
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['linkLimit'] = 3;
         return $ret;
     }

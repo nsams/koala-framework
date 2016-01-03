@@ -1,9 +1,9 @@
 <?php
 class Kwc_Menu_DropdownMask_Component extends Kwc_Menu_Dropdown_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['cssClass'] .= ' webListNone';
         $ret['assets']['dep'][] = 'jQuery';
         // Define the mask parent node, if parent is not body, parents css position has to be "relative"

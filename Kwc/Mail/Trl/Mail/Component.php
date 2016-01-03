@@ -3,7 +3,7 @@ class Kwc_Mail_Trl_Mail_Component extends Kwc_Mail_Abstract_Component
 {
     public static function getSettings($masterComponentClass)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['mailHtmlStyles'] = Kwc_Abstract::getSetting($masterComponentClass, 'mailHtmlStyles');
         $ret['plugins'] = Kwc_Abstract::getSetting($masterComponentClass, 'plugins');
 

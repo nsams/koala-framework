@@ -63,7 +63,7 @@ class Kwf_Component_Abstract
         return self::getSetting($c, 'parentClasses');
     }
 
-    public static function getSettings()
+    public static function getSettings($param)
     {
         return array(
             'assets'        => array('files'=>array(), 'dep'=>array()),

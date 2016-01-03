@@ -1,9 +1,9 @@
 <?php
 class Kwf_Component_ComponentLinkModifiers_Page_Component extends Kwc_Abstract
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['flags']['hasComponentLinkModifiers'] = true;
         return $ret;
     }

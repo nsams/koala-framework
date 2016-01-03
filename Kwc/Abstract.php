@@ -102,9 +102,9 @@ abstract class Kwc_Abstract extends Kwf_Component_Abstract
      *
      * @return array
      */
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['viewCache'] = true;
         $ret['contentSender'] = 'Kwf_Component_Abstract_ContentSender_Default';
         return $ret;

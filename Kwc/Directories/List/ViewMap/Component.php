@@ -1,9 +1,9 @@
 <?php
 class Kwc_Directories_List_ViewMap_Component extends Kwc_Directories_List_View_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['assetsDefer']['dep'][] = 'KwfGoogleMap';
         $ret['assetsDefer']['dep'][] = 'ExtUtilJson';
         $ret['generators']['child']['component']['paging'] = null;

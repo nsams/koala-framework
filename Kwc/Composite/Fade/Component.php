@@ -1,9 +1,9 @@
 <?php
 class Kwc_Composite_Fade_Component extends Kwc_Abstract_Composite_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['componentName'] = trlKwfStatic('Fade');
         $ret['assetsDefer']['dep'][] = 'KwfFadeElements';
 

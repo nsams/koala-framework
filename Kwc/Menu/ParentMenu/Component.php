@@ -3,7 +3,7 @@ class Kwc_Menu_ParentMenu_Component extends Kwc_Abstract
 {
     public static function getSettings($menuComponentClass)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings('');
         $generators = Kwc_Abstract::getSetting($menuComponentClass, 'generators');
         if (isset($generators['subMenu'])) {
             $ret['generators']['subMenu'] = $generators['subMenu'];

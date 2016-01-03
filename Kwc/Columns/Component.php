@@ -4,7 +4,7 @@ class Kwc_Columns_Component extends Kwc_Abstract_List_Component
     public static $needsParentComponentClass = true;
     public static function getSettings($parentComponentClass)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings('');
         $ret['componentName'] = trlKwfStatic('Columns');
         $ret['componentIcon'] = 'application_tile_horizontal';
         $ret['componentCategory'] = 'layout';

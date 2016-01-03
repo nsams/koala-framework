@@ -1,9 +1,9 @@
 <?php
 class Kwc_Shop_Products_View_Component extends Kwc_Shop_Products_ViewWithoutAddToCart_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['flags']['processInput'] = true;
         return $ret;
     }

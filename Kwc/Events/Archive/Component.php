@@ -1,9 +1,9 @@
 <?php
 class Kwc_Events_Archive_Component extends Kwc_Directories_List_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['useDirectorySelect'] = false;
         return $ret;
     }

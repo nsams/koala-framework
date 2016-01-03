@@ -1,9 +1,9 @@
 <?php
 class Kwc_Menu_Mobile_Component extends Kwc_Abstract
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['level'] = array('main');
         $ret['cssClass'] = 'webListNone webStandard webMenu default';
         $ret['placeholder']['menuLink'] = trlKwfStatic('Menu');

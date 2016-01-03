@@ -1,9 +1,9 @@
 <?php
 class Kwc_User_Login_Component extends Kwc_Abstract_Composite_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['generators']['child']['component']['form'] = 'Kwc_User_Login_Form_Component';
         $ret['cssClass'] = 'webStandard';
         $ret['plugins'] = array('Kwc_User_Login_Plugin');
@@ -23,7 +23,7 @@ class Kwc_User_Login_Component extends Kwc_Abstract_Composite_Component
         return $redirectBackUrl;
     }
 
-    public function preProcessInput($postData)
+    public function preProcessInput(array $postData)
     {
         if (isset($postData['redirectAuth'])) {
             $authMethods = Kwf_Registry::get('userModel')->getAuthMethods();

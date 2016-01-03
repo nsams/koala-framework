@@ -1,9 +1,9 @@
 <?php
 class Kwc_Directories_AjaxView_View_SearchForm_Component extends Kwc_Form_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         $ret['useAjaxRequest'] = false;
         $ret['method'] = 'get';
         $ret['generators']['child']['component']['success'] = false;

@@ -1,9 +1,9 @@
 <?php
 class Kwc_Trl_Domains_Domain_Component extends Kwc_Root_DomainRoot_Domain_Component
 {
-    public static function getSettings()
+    public static function getSettings($param)
     {
-        $ret = parent::getSettings();
+        $ret = parent::getSettings($param);
         unset($ret['generators']['category']);
         $ret['baseProperties'] = array('domain');
         $ret['flags']['hasHome'] = false;
