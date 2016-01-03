@@ -94,7 +94,7 @@ abstract class Kwc_Chained_Abstract_Component extends Kwc_Abstract
         return Kwc_Abstract::getSetting($componentClass, 'alternativeComponents');
     }
 
-    public function preProcessInput($postData)
+    public function preProcessInput(array $postData)
     {
         $c = $this->getData()->chained->getComponent();
         if (method_exists($c, 'preProcessInput')) {
@@ -102,7 +102,7 @@ abstract class Kwc_Chained_Abstract_Component extends Kwc_Abstract
         }
     }
 
-    public function processInput($postData)
+    public function processInput(array $postData)
     {
         $c = $this->getData()->chained->getComponent();
         if (method_exists($c, 'processInput')) {

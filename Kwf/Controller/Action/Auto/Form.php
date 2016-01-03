@@ -106,7 +106,7 @@ abstract class Kwf_Controller_Action_Auto_Form extends Kwf_Controller_Action_Aut
     {
         $this->view->meta = array();
         $this->view->meta['helpText'] = $this->getHelpText();
-        $this->view->meta['form'] = $this->_form->getMetaData();
+        $this->view->meta['form'] = $this->_form->getMetaData($this->_form->getModel());
         $this->view->meta['buttons'] = (object)$this->_buttons; //in objekt casten damit json kein [] sondern {} ausgibt
         $this->view->meta['permissions'] = (object)$this->_permissions; //in objekt casten damit json kein [] sondern {} ausgibt
     }

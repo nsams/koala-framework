@@ -17,7 +17,7 @@ class Kwc_Posts_Detail_Edit_Form_Component extends Kwc_Posts_Write_Form_Componen
         $this->_form->setId($this->_getPostComponent()->row->id);
     }
 
-    public function processInput($postData)
+    public function processInput(array $postData)
     {
         if (!$this->_getPostComponent()->getChildComponent('-actions')->getComponent()->mayEditPost()) {
             throw new Kwf_Exception_AccessDenied();

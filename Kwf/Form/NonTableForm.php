@@ -84,7 +84,7 @@ class Kwf_Form_NonTableForm extends Kwf_Form_Container_Abstract
         $this->getProperty('model');
     }
 
-    public function setModel($value)
+    public function setModel(Kwf_Model_Interface $value)
     {
         return $this->setProperty('model', $value);
     }

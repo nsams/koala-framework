@@ -51,7 +51,7 @@ abstract class Kwf_Controller_Action_Component_PagesAbstractController extends K
         return self::getNodeConfig($component);
     }
 
-    public static function getNodeConfig($component)
+    public static function getNodeConfig($component, $user, $acl, array &$componentConfigs = array())
     {
         if ($component->componentId == 'root') { // Root hat keinen Generator
             $data['icon'] = new Kwf_Asset('world');

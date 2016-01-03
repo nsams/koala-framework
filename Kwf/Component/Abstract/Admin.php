@@ -148,10 +148,6 @@ class Kwf_Component_Abstract_Admin
         return self::getComponentFile($class, str_replace('_', '/', $filename), 'php', true);
     }
 
-    public function delete()
-    {
-    }
-
     /**
      * @deprecated use menuConfig instead
      */

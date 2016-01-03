@@ -13,7 +13,7 @@ class Kwf_Controller_Action_Component_PagesController extends Kwf_Controller_Act
     //public static zum testen
     public static function getNodeConfig($component, $user, $acl, array &$componentConfigs = array())
     {
-        $data = parent::getNodeConfig($component);
+        $data = parent::getNodeConfig($component, $user, $acl, $componentConfigs);
         $enabled = $acl->isAllowed($user, $component);
         if (!$enabled && !$component instanceof Kwf_Component_Data_Root/*root nicht überprüfen, die wird immar angezeigt*/) {
             $allowedComponents = $acl->getAllowedRecursiveChildComponents($user, $component);

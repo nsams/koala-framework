@@ -100,7 +100,7 @@ class Kwf_Model_Mongo_RowsSubModel extends Kwf_Model_Data_Abstract
         return $this->_createRow($data, array('parentRow' => $parentRow));
     }
 
-    public function getRowByDataKey($key, $parentRow)
+    public function getRowByDataKeyAndParentRow($key, $parentRow)
     {
         if (!isset($this->_rows[$parentRow->getInternalId()][$key])) {
             $this->_rows[$parentRow->getInternalId()][$key] = new $this->_rowClass(array(

@@ -110,7 +110,7 @@ class Kwf_Grid_Column implements Kwf_Collection_Item_Interface
 
     public function load($row, $role, $info)
     {
-        return $this->getData()->load($row, $info);
+        return $this->getData()->load($row);
     }
 
     public function getName() {

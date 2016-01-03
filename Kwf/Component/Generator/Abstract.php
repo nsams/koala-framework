@@ -869,7 +869,7 @@ abstract class Kwf_Component_Generator_Abstract
         return $flags[$flag];
     }
 
-    public function getPagePropertiesForm()
+    public function getPagePropertiesForm($componentOrParent)
     {
         return null;
     }
